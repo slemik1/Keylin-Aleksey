@@ -1,0 +1,40 @@
+---
+- name: Homework Ansible_basecamp
+  hosts: all
+  become: yes
+
+  tasks:
+
+  - name: create and copy file for groop iaas
+    file:
+      path: "/etc/iaac"
+      state: file
+      mode: 0500
+      
+    delegate_to: "{{ item }}"
+    loop: "{{ groups.iaas }}"
+
+#    The second implementation option for creating file on the master and copying for a group iaas
+  - name: create file iaac on master and copy for groop iaas
+    file:
+      path: "/etc/iaac"
+      state: file
+      mode: 0500
+    delegate_to: 127.0.0.1
+
+  - copy:
+      remote_src: true
+      local_follow: False 
+      src: "/etc/iaac"
+      dest: "/etc/iaac"
+      mode: 0500
+      force: no
+    delegate_to: "{{ item }}"
+    loop: "{{ groups.iaas }}"
+
+  - name: create variable with data from /etc/issue
+    command: cat /etc/issue
+    register: result
+    
+  - debug:
+      msg: content of /etc/issue = {{ result.stdout }} in hostname is {{ inventory_hostname }}
